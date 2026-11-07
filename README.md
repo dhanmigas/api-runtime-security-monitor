@@ -87,3 +87,6 @@ This is a research prototype, not a production product.
 
 ## Contributing
 Ideas are welcome, especially on integrating baseline approval into CI/CD pipelines. Please open an issue.
+
+## Licence
+MIT. See [LICENSE](LICENSE).
