@@ -85,8 +85,30 @@ This is a research prototype, not a production product.
 - State is held in memory and in a local SQLite file, so it runs on one instance only.
 - Thresholds were tuned on simulated traffic and would need re-tuning on real traffic.
 
+## Roadmap
+This started as an MSc research prototype. The goal now is to take it beyond the academic version. Planned work, much of it from the dissertation's future-work chapter:
+
+**Good first issues**
+- [ ] Count HTTP 400 (regex catches) as detections in `summary()` in `tests/attack-simulations/config.py`. The dissertation traces SQL injection's reported 90.9% to this undercount.
+- [ ] Record which mechanism caught each SQL injection request (Layer 1 payload score or regex) so a framework-only rate can be reported.
+- [ ] Add xUnit unit tests for `RiskScorer`, `BaselineEngine` and `IpTracker`.
+
+**Detection**
+- [ ] Refine the layer weighting so one active secondary layer can't cap the combined score (e.g. a minimum weight per layer).
+- [ ] Validate Layer 4 swarm thresholds beyond batch sizes 12 and 30, and against coordination patterns other than fixed batches.
+- [ ] Test Layer 3 against bots that mimic human timing.
+
+**Production readiness**
+- [ ] Take the client IP only from a trusted reverse proxy (remove the test-only `X-Simulated-IP` header outside test mode).
+- [ ] Shared state store (e.g. Redis) for multi-instance deployments.
+- [ ] Package the middleware as a NuGet package.
+
+**Developer governance**
+- [ ] Baseline approval as a **CI/CD pipeline gate**, so proposed baseline changes are reviewed like code changes.
+- [ ] More context in the approval queue to help developers judge subtle, ambiguous baseline changes (a limitation raised by a security professional during evaluation).
+
 ## Contributing
-Ideas are welcome, especially on integrating baseline approval into CI/CD pipelines. Please open an issue.
+Collaborators are welcome, especially on CI/CD integration and production hardening. See [CONTRIBUTING.md](CONTRIBUTING.md), or open an issue to discuss an idea.
 
 ## Licence
 MIT. See [LICENSE](LICENSE).
