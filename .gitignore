@@ -1,0 +1,16 @@
+# .NET build output and IDE files
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Runtime database (recreated on first run; contains captured request data)
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.pyc
+.venv/

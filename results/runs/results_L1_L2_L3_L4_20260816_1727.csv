@@ -1,0 +1,8 @@
+scenario,total,blocked,allowed,errors,avg_ms,config
+Normal Traffic — Baseline + FPR,500,0,468,1,70.43,L1+L2+L3+L4
+Credential Stuffing,200,185,0,0,33.81,L1+L2+L3+L4
+Data Scraping,300,241,59,0,34.7,L1+L2+L3+L4
+Slow Brute Force,100,4,0,0,61.1,L1+L2+L3+L4
+Distributed Bot Flood,500,414,86,0,282.9,L1+L2+L3+L4
+SQL Injection,110,88,0,0,34.88,L1+L2+L3+L4
+Normal Traffic — Baseline + FPR,500,0,473,0,54.79,L1+L2+L3+L4

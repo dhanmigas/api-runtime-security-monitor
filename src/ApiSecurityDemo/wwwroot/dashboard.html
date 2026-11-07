@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Security Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: Arial,sans-serif;
+            background: #0f172a;
+            color: #e2e8f0
+        }
+
+        .hdr {
+            background: #1e3a5f;
+            padding: 12px 22px;
+            border-bottom: 3px solid #2e8b9a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+            .hdr h1 {
+                font-size: 1.2rem;
+                color: #fff
+            }
+
+        .nav {
+            display: flex;
+            gap: 5px;
+            background: #1a2744;
+            padding: 7px 22px;
+            flex-wrap: wrap
+        }
+
+            .nav button {
+                background: none;
+                border: 1px solid #334155;
+                color: #94a3b8;
+                padding: 5px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: .78rem
+            }
+
+                .nav button.active, .nav button:hover {
+                    background: #2e5496;
+                    color: #fff;
+                    border-color: #2e5496
+                }
+
+        .content {
+            padding: 14px 22px;
+            max-width: 1500px;
+            margin: 0 auto
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(110px,1fr));
+            gap: 7px;
+            margin-bottom: 11px
+        }
+
+        .stat {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #2e8b9a
+        }
+
+            .stat .lbl {
+                font-size: .65rem;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 1px
+            }
+
+            .stat .val {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #fff;
+                margin-top: 2px
+            }
+
+            .stat.d .val {
+                color: #f87171
+            }
+
+            .stat.w .val {
+                color: #fbbf24
+            }
+
+            .stat.ok .val {
+                color: #34d399
+            }
+
+        .card {
+            background: #1e293b;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden
+        }
+
+        .ch {
+            background: #162032;
+            padding: 9px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155
+        }
+
+            .ch h2 {
+                font-size: .88rem;
+                color: #e2e8f0;
+                font-weight: 600
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .76rem
+        }
+
+        th {
+            background: #162032;
+            color: #94a3b8;
+            padding: 6px 9px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: .67rem
+        }
+
+        td {
+            padding: 6px 9px;
+            border-bottom: 1px solid #1e293b;
+            color: #cbd5e1
+        }
+
+        tr:hover {
+            background: #1a2a3f
+        }
+
+        .b {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: .67rem;
+            font-weight: 600
+        }
+
+        .ba {
+            background: #065f46;
+            color: #6ee7b7
+        }
+
+        .bl {
+            background: #1e3a5f;
+            color: #7dd3fc
+        }
+
+        .br {
+            background: #78350f;
+            color: #fcd34d
+        }
+
+        .bk {
+            background: #7f1d1d;
+            color: #fca5a5
+        }
+
+        .bp {
+            background: #1e3a5f;
+            color: #fbbf24
+        }
+
+        .bap {
+            background: #065f46;
+            color: #6ee7b7
+        }
+
+        .brj {
+            background: #7f1d1d;
+            color: #fca5a5
+        }
+
+        .bex {
+            background: #334155;
+            color: #94a3b8
+        }
+
+        .btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .75rem;
+            font-weight: 600
+        }
+
+        .bap2 {
+            background: #065f46;
+            color: #6ee7b7
+        }
+
+        .brj2 {
+            background: #7f1d1d;
+            color: #fca5a5;
+            margin-left: 3px
+        }
+
+        .brm {
+            background: #334155;
+            color: #94a3b8;
+            font-size: .7rem
+        }
+
+        .bexp {
+            background: #1e3a5f;
+            color: #7dd3fc;
+            border: 1px solid #2e5496;
+            padding: 5px 11px
+        }
+
+        .palert {
+            background: #1c1a07;
+            border: 1px solid #854d0e;
+            border-radius: 8px;
+            padding: 9px 14px;
+            margin-bottom: 10px;
+            color: #fcd34d;
+            font-size: .8rem
+        }
+
+        .sec {
+            display: none
+        }
+
+            .sec.active {
+                display: block
+            }
+
+        input[type=text], select {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: .77rem
+        }
+
+        input[type=text] {
+            width: 190px
+        }
+
+        .sb2 {
+            display: inline-block;
+            width: 44px;
+            height: 5px;
+            background: #334155;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-right: 3px
+        }
+
+        .sf2 {
+            height: 100%;
+            border-radius: 3px
+        }
+
+        .wmb {
+            background: #334155;
+            color: #94a3b8;
+            font-size: .6rem;
+            padding: 1px 5px;
+            border-radius: 8px
+        }
+
+        .mg {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 8px;
+            padding: 12px
+        }
+
+        .mb2 {
+            background: #162032;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border-top: 3px solid #2e8b9a
+        }
+
+            .mb2.pass {
+                border-top-color: #34d399
+            }
+
+            .mb2.fail {
+                border-top-color: #f87171
+            }
+
+            .mb2.warn {
+                border-top-color: #fbbf24
+            }
+
+            .mb2 .mv {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #fff
+            }
+
+            .mb2 .ml {
+                font-size: .68rem;
+                color: #94a3b8;
+                margin-top: 3px
+            }
+
+            .mb2 .mt {
+                font-size: .66rem;
+                color: #4b5563;
+                margin-top: 2px
+            }
+
+        .sg {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 7px;
+            padding: 11px
+        }
+
+        .sb3 {
+            background: #162032;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center
+        }
+
+            .sb3:hover {
+                background: #1e3a5f;
+                border-color: #2e5496
+            }
+
+            .sb3 .st {
+                font-weight: bold;
+                font-size: .84rem
+            }
+
+            .sb3 .sd {
+                font-size: .7rem;
+                color: #94a3b8;
+                margin-top: 2px
+            }
+
+            .sb3.nor {
+                border-color: #34d399
+            }
+
+            .sb3.atk {
+                border-color: #f87171
+            }
+
+        #slog {
+            background: #0f172a;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: .7rem;
+            color: #94a3b8;
+            max-height: 100px;
+            overflow-y: auto;
+            margin: 0 11px 11px
+        }
+
+        .cw {
+            padding: 11px;
+            height: 260px;
+            position: relative
+        }
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div><h1>🛡 API Security Monitoring Dashboard</h1><span style="font-size:.7rem;color:#94a3b8">Auto-refreshes every 10s</span></div>
+        <div style="display:flex;gap:9px;align-items:center">
+            <span id="layers" style="font-size:.75rem;color:#2e8b9a;font-weight:bold"></span>
+            <button class="btn bexp" onclick="exportCsv()">⬇ Export CSV</button>
+            <span id="clock" style="font-size:.8rem;color:#94a3b8"></span>
+        </div>
+    </div>
+    <div class="nav">
+        <button class="active" onclick="show('overview')">Overview</button>
+        <button onclick="show('metrics')">Eval Metrics</button>
+        <button onclick="show('hitl')">HITL Approvals</button>
+        <button onclick="show('events')">Security Events</button>
+        <button onclick="show('chart')">Score History</button>
+        <button onclick="show('simulator')">Attack Simulator</button>
+        <button onclick="show('baselines')">Baselines</button>
+        <button onclick="show('ips')">Active IPs</button>
+        <button onclick="show('blacklist')">Blacklist</button>
+    </div>
+    <div class="content">
+        <div id="overview" class="sec active">
+            <div class="stats" id="sg">Loading...</div><div id="pc"></div>
+            <div class="card">
+                <div class="ch"><h2>Recent Security Events</h2></div>
+                <table>
+                    <thead><tr><th>Time</th><th>IP</th><th>Endpoint</th><th>Action</th><th>Score</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>Attack?</th><th>ms</th></tr></thead>
+                    <tbody id="er"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="metrics" class="sec">
+            <div class="card">
+                <div class="ch"><h2>Evaluation Metrics F7–F10</h2></div>
+                <div class="mg" id="mg">Loading...</div>
+                <div style="padding:0 14px 12px;font-size:.73rem;color:#4b5563">TP=attack flagged | FP=legitimate flagged | FN=attack allowed | TN=legitimate allowed. Run Attack Simulator to populate.</div>
+            </div>
+        </div>
+        <div id="hitl" class="sec">
+            <div class="card">
+                <div class="ch">
+                    <h2>HITL Baseline Approval Log</h2>
+                    <span style="font-size:.7rem;color:#94a3b8">All proposed changes require developer approval. Auto-expires 48h.</span>
+                </div>
+                <table>
+                    <thead><tr><th>ID</th><th>Endpoint</th><th>Parameter</th><th>Old μ</th><th>Proposed μ</th><th>Change%</th><th>Status</th><th>Proposed</th><th>Decided</th><th>Action</th></tr></thead>
+                    <tbody id="ht"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="events" class="sec">
+            <div class="card">
+                <div class="ch"><h2>All Security Events</h2></div>
+                <table>
+                    <thead><tr><th>Time</th><th>IP</th><th>Endpoint</th><th>Action</th><th>Score</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>HTTP</th><th>Attack?</th><th>ms</th></tr></thead>
+                    <tbody id="ea"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="chart" class="sec">
+            <div class="card">
+                <div class="ch">
+                    <h2>Score History</h2>
+                    <div style="display:flex;gap:7px;align-items:center">
+                        <select id="cep" onchange="loadChart()"><option>Loading...</option></select>
+                        <select id="cmin" onchange="loadChart()"><option value="30">30 min</option><option value="60" selected>60 min</option><option value="120">2 hrs</option></select>
+                    </div>
+                </div>
+                <div class="cw"><canvas id="sc"></canvas></div>
+                <div style="display:flex;gap:14px;padding:0 14px 9px;font-size:.7rem;color:#94a3b8">
+                    <span style="color:#fbbf24">— 0.30 Log</span><span style="color:#f97316">— 0.60 Rate-Limit</span><span style="color:#ef4444">— 0.85 Block</span>
+                </div>
+            </div>
+        </div>
+        <div id="simulator" class="sec">
+            <div class="card">
+                <div class="ch">
+                    <h2>Attack Simulator</h2>
+                    <span style="font-size:.7rem;color:#94a3b8">All attack requests include X-Test-Attack header - auto-populates Eval Metrics</span>
+                </div>
+                <div class="sg">
+                    <div class="sb3 atk" onclick="sim('credential-stuffing')"><div class="st">🔑 Credential Stuffing</div><div class="sd">30× failed logins from 10.0.0.1</div></div>
+                    <div class="sb3 atk" onclick="sim('data-scraping')"><div class="st">🤖 Data Scraping</div><div class="sd">40× rapid GET from 10.0.0.2</div></div>
+                    <div class="sb3 atk" onclick="sim('slow-brute-force')"><div class="st">🐢 Slow Brute Force</div><div class="sd">15× spaced logins from 10.0.0.3</div></div>
+                    <div class="sb3 atk" onclick="sim('bot-flood')"><div class="st">🌐 Bot Flood</div><div class="sd">20 IPs hitting /products simultaneously</div></div>
+                    <div class="sb3 atk" onclick="sim('sql-injection')"><div class="st">💉 SQL Injection</div><div class="sd">Large malicious payloads to /data</div></div>
+                    <div class="sb3 nor" onclick="sim('normal')"><div class="st">✅ Normal Traffic</div><div class="sd">10× legitimate requests</div></div>
+                </div>
+                <div id="slog">Click a scenario above to run it...</div>
+            </div>
+        </div>
+        <div id="baselines" class="sec">
+            <div class="card">
+                <div class="ch"><h2>Baseline Values (μ ± σ)</h2></div>
+                <table>
+                    <thead><tr><th>Endpoint</th><th>Freq μ</th><th>Freq σ</th><th>Payload μ</th><th>Auth Fail μ</th><th>Observations</th><th>Status</th><th>Updated</th></tr></thead>
+                    <tbody id="bt"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="ips" class="sec">
+            <div class="card">
+                <div class="ch"><h2>Active IP Records</h2></div>
+                <table>
+                    <thead><tr><th>IP</th><th>Req/60s</th><th>Total</th><th>Auth Fail%</th><th>Timing Var</th><th>Warned</th><th>Blocked</th><th>First Seen</th></tr></thead>
+                    <tbody id="it"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="blacklist" class="sec">
+            <div class="card">
+                <div class="ch">
+                    <h2>Blacklist</h2>
+                    <div style="display:flex;gap:5px"><input type="text" id="bli" placeholder="IP or subnet"><button class="btn brj2" onclick="addBl()">Add</button></div>
+                </div>
+                <table>
+                    <thead><tr><th>IP / Subnet</th><th>Reason</th><th>Added At</th><th>Action</th></tr></thead>
+                    <tbody id="blt"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        let cur = 'overview';
+        let chart = null;
+
+        const TABS = [
+            'overview', 'metrics', 'hitl', 'events', 'chart',
+            'simulator', 'baselines', 'ips', 'blacklist'
+        ];
+
+        function show(s) {
+            document.querySelectorAll('.sec').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(x => x.classList.remove('active'));
+            document.getElementById(s).classList.add('active');
+            document.querySelectorAll('.nav button')[TABS.indexOf(s)].classList.add('active');
+            cur = s;
+            load(s);
+        }
+
+        function bdg(a) {
+            const m = { Allow: 'ba', Log: 'bl', RateLimit: 'br', Block: 'bk', 'Block-Blacklist': 'bk' };
+            return `<span class="b ${m[a] || 'bl'}">${a}</span>`;
+        }
+
+        function sbdg(s) {
+            const m = { Pending: 'bp', Approved: 'bap', Rejected: 'brj', Expired: 'bex' };
+            return `<span class="b ${m[s] || 'bl'}">${s}</span>`;
+        }
+
+        function sbar(v) {
+            const p = Math.min(v * 100, 100);
+            const c = p < 30 ? '#34d399' : p < 60 ? '#fbbf24' : p < 85 ? '#f97316' : '#ef4444';
+            return `<div class="sb2"><div class="sf2" style="width:${p}%;background:${c}"></div></div>${v.toFixed(3)}`;
+        }
+
+        function fmt(ts) {
+            if (!ts) return '-';
+            return new Date(ts).toLocaleTimeString('en-GB', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+
+        function atk(v) {
+            return v
+                ? '<span class="b bk" style="font-size:.6rem">ATTACK</span>'
+                : '<span style="color:#4b5563">-</span>';
+        }
+
+        async function loadStats() {
+            const d = await (await fetch('/dashboard/api/stats')).json();
+
+            document.getElementById('layers').textContent = `Active: ${d.activeLayers}`;
+
+            document.getElementById('sg').innerHTML = `
+        <div class="stat"><div class="lbl">Total</div><div class="val">${d.total}</div></div>
+        <div class="stat ok"><div class="lbl">Allowed</div><div class="val">${d.allowed}</div></div>
+        <div class="stat"><div class="lbl">Logged</div><div class="val">${d.logged}</div></div>
+        <div class="stat w"><div class="lbl">Rate Ltd</div><div class="val">${d.rateLimited}</div></div>
+        <div class="stat d"><div class="lbl">Blocked</div><div class="val">${d.blocked}</div></div>
+        <div class="stat"><div class="lbl">Avg Score</div><div class="val">${(d.avgScore || 0).toFixed(3)}</div></div>
+        <div class="stat"><div class="lbl">Avg ms</div><div class="val">${(d.avgLatencyMs || 0).toFixed(1)}</div></div>
+        <div class="stat w"><div class="lbl">Pending HITL</div><div class="val">${d.pendingHitl}</div></div>
+        <div class="stat d"><div class="lbl">Blacklisted</div><div class="val">${d.blacklistCount}</div></div>
+      `;
+        }
+
+        async function loadPending() {
+            const d = await (await fetch('/dashboard/api/hitl/pending')).json();
+            const c = document.getElementById('pc');
+
+            if (!d.length) {
+                c.innerHTML = '';
+                return;
+            }
+
+            c.innerHTML = `
+        <div class="palert">
+          ⚠ ${d.length} pending HITL approval${d.length > 1 ? 's' : ''} require review.
+          <button class="btn bap2" style="margin-left:9px" onclick="show('hitl')">Review Now</button>
+        </div>
+      `;
+        }
+
+        async function loadEvents(id) {
+            const d = await (await fetch('/dashboard/api/events')).json();
+            const f = id === 'ea';
+
+            document.getElementById(id).innerHTML = d.map(e => `
+        <tr>
+          <td>${fmt(e.timestamp)}</td>
+          <td>${e.ip}</td>
+          <td>${e.endpoint}</td>
+          <td>${bdg(e.action)}</td>
+          <td>${sbar(e.score)}</td>
+          <td>${e.l1.toFixed(2)}</td>
+          <td>${e.l2.toFixed(2)}</td>
+          <td>${e.l3.toFixed(2)}</td>
+          <td>${e.l4.toFixed(2)}</td>
+          ${f ? `<td>${e.statusCode}</td>` : ''}
+          <td>${atk(e.isKnownAttack)}</td>
+          <td>${e.latencyMs.toFixed(1)}</td>
+        </tr>
+      `).join('') || `<tr><td colspan="${f ? 12 : 11}" style="text-align:center;color:#4b5563">No events yet</td></tr>`;
+        }
+
+        async function loadMetrics() {
+            const d = await (await fetch('/dashboard/api/metrics')).json();
+
+            const passIfAbove = (v, t) => v >= t ? 'pass' : v >= t * 0.85 ? 'warn' : 'fail';
+            const passIfBelow = (v, t) => v <= t ? 'pass' : v <= t * 1.15 ? 'warn' : 'fail';
+
+            document.getElementById('mg').innerHTML = `
+        <div class="mb2 ${passIfAbove(d.detectionRate, 0.85)}">
+          <div class="mv">${(d.detectionRate * 100).toFixed(1)}%</div>
+          <div class="ml">Detection Rate (F7)</div>
+          <div class="mt">Target ≥85% | TP:${d.tp} FN:${d.fn}</div>
+        </div>
+        <div class="mb2 ${passIfBelow(d.falsePositiveRate, 0.10)}">
+          <div class="mv">${(d.falsePositiveRate * 100).toFixed(1)}%</div>
+          <div class="ml">False Positive Rate (F8)</div>
+          <div class="mt">Target ≤10% | FP:${d.fp} TN:${d.tn}</div>
+        </div>
+        <div class="mb2 ${passIfAbove(d.precision, 0.80)}">
+          <div class="mv">${(d.precision * 100).toFixed(1)}%</div>
+          <div class="ml">Precision (F9)</div>
+          <div class="mt">Target ≥80%</div>
+        </div>
+        <div class="mb2 ${passIfAbove(d.f1Score, 0.82)}">
+          <div class="mv">${d.f1Score.toFixed(3)}</div>
+          <div class="ml">F1-Score (F10)</div>
+          <div class="mt">Target ≥0.82</div>
+        </div>
+        <div class="mb2 ${passIfBelow(d.avgLatencyMs, 5)}">
+          <div class="mv">${d.avgLatencyMs.toFixed(2)}ms</div>
+          <div class="ml">Avg Latency</div>
+          <div class="mt">Target ≤5ms</div>
+        </div>
+        <div class="mb2">
+          <div class="mv">${d.tp + d.fp + d.fn + d.tn}</div>
+          <div class="ml">Total Classified</div>
+          <div class="mt">TP+FP+FN+TN</div>
+        </div>
+      `;
+        }
+
+        async function loadHitl() {
+            const d = await (await fetch('/dashboard/api/hitl')).json();
+
+            document.getElementById('ht').innerHTML = d.map(h => {
+                const changeColor = Math.abs(h.changePercent) > 20 ? '#f87171' : '#fbbf24';
+
+                const actionCell = h.status === 'Pending'
+                    ? `<button class="btn bap2" onclick="decide(${h.id},true)">Approve</button>
+             <button class="btn brj2" onclick="decide(${h.id},false)">Reject</button>`
+                    : `<span style="color:#4b5563;font-size:.7rem">${h.developerNote || ''}</span>`;
+
+                return `
+          <tr>
+            <td>${h.id}</td>
+            <td>${h.endpoint}</td>
+            <td>${h.parameter}</td>
+            <td>${h.oldMean.toFixed(2)}</td>
+            <td>${h.proposedMean.toFixed(2)}</td>
+            <td style="color:${changeColor}">${h.changePercent.toFixed(1)}%</td>
+            <td>${sbdg(h.status)}</td>
+            <td>${fmt(h.proposedAt)}</td>
+            <td>${h.decidedAt ? fmt(h.decidedAt) : '-'}</td>
+            <td>${actionCell}</td>
+          </tr>
+        `;
+            }).join('') || '<tr><td colspan="10" style="text-align:center;color:#4b5563">No HITL records</td></tr>';
+        }
+
+        async function decide(id, approved) {
+            await fetch(`/dashboard/api/hitl/${id}/decide`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    approved,
+                    note: approved ? 'Approved by developer' : 'Rejected by developer'
+                })
+            });
+
+            loadHitl();
+            loadStats();
+        }
+
+        async function loadChart() {
+            const ep = document.getElementById('cep').value;
+            const mins = document.getElementById('cmin').value;
+
+            if (!ep || ep === 'Loading...') return;
+
+            const d = await (await fetch(
+                `/dashboard/api/score-history?endpoint=${encodeURIComponent(ep)}&minutes=${mins}`
+            )).json();
+
+            const ctx = document.getElementById('sc').getContext('2d');
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: d.map(p => fmt(p.timestamp)),
+                    datasets: [{
+                        label: `Score — ${ep}`,
+                        data: d.map(p => p.score),
+                        borderColor: '#2e8b9a',
+                        backgroundColor: 'rgba(46,139,154,0.08)',
+                        pointBackgroundColor: d.map(p =>
+                            p.score >= 0.85 ? '#ef4444' :
+                                p.score >= 0.60 ? '#f97316' :
+                                    p.score >= 0.30 ? '#fbbf24' : '#34d399'
+                        ),
+                        pointRadius: 3,
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 1, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', maxTicksLimit: 10 } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e2e8f0' } }
+                    }
+                }
+            });
+        }
+
+        async function loadChartEps() {
+            const d = await (await fetch('/dashboard/api/score-history/endpoints')).json();
+            const sel = document.getElementById('cep');
+
+            sel.innerHTML = d.map(e => `<option value="${e}">${e}</option>`).join('');
+
+            if (d.length) loadChart();
+        }
+
+        async function loadBaselines() {
+            const d = await (await fetch('/dashboard/api/baselines')).json();
+
+            document.getElementById('bt').innerHTML = d.map(b => {
+                const statusCell = b.inWarmup
+                    ? `<span class="wmb">⏳ Warmup(${b.observations}/50)</span>`
+                    : b.approved
+                        ? `<span class="b bap">✓</span>`
+                        : `<span class="b bp">Pending</span>`;
+
+                return `
+          <tr>
+            <td>${b.endpoint}</td>
+            <td>${b.freqMean.toFixed(1)}</td>
+            <td>${b.freqStdDev.toFixed(1)}</td>
+            <td>${b.payloadMean.toFixed(0)}</td>
+            <td>${(b.authFailMean * 100).toFixed(1)}%</td>
+            <td>${b.observations}</td>
+            <td>${statusCell}</td>
+            <td style="font-size:.67rem;color:#64748b">${new Date(b.lastUpdated).toLocaleDateString()}</td>
+          </tr>
+        `;
+            }).join('');
+        }
+
+        async function loadIps() {
+            const d = await (await fetch('/dashboard/api/ips')).json();
+
+            document.getElementById('it').innerHTML = d.map(ip => {
+                const reqColor = ip.requestsIn60s > 50 ? '#f87171' : ip.requestsIn60s > 20 ? '#fbbf24' : '#34d399';
+                const authColor = ip.authFailureRate > 30 ? '#f87171' : ip.authFailureRate > 10 ? '#fbbf24' : '#34d399';
+                const timingColor = ip.timingVarianceMs < 50 ? '#f87171' : '#34d399';
+                const blockedColor = ip.timesBlocked > 0 ? '#f87171' : 'inherit';
+
+                return `
+          <tr>
+            <td>${ip.ip}</td>
+            <td style="color:${reqColor}">${ip.requestsIn60s}</td>
+            <td>${ip.totalRequests}</td>
+            <td style="color:${authColor}">${ip.authFailureRate.toFixed(1)}%</td>
+            <td style="color:${timingColor}">${ip.timingVarianceMs.toFixed(0)}ms</td>
+            <td>${ip.timesWarned}</td>
+            <td style="color:${blockedColor}">${ip.timesBlocked}</td>
+            <td style="font-size:.67rem;color:#64748b">${fmt(ip.firstSeen)}</td>
+          </tr>
+        `;
+            }).join('') || '<tr><td colspan="8" style="text-align:center;color:#4b5563">No active IPs</td></tr>';
+        }
+
+        async function loadBlacklist() {
+            const d = await (await fetch('/dashboard/api/blacklist')).json();
+
+            document.getElementById('blt').innerHTML = d.map(b => `
+        <tr>
+          <td>${b.ipOrSubnet}</td>
+          <td>${b.reason}</td>
+          <td>${fmt(b.addedAt)}</td>
+          <td><button class="btn brm" onclick='remBl("${b.ipOrSubnet}")'>Remove</button></td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" style="text-align:center;color:#4b5563">Blacklist is empty</td></tr>';
+        }
+
+        async function addBl() {
+            const ip = document.getElementById('bli').value.trim();
+            if (!ip) return;
+
+            await fetch('/dashboard/api/blacklist/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ipOrSubnet: ip, reason: 'Manual' })
+            });
+
+            document.getElementById('bli').value = '';
+            loadBlacklist();
+        }
+
+        async function remBl(ip) {
+            await fetch('/dashboard/api/blacklist/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ipOrSubnet: ip })
+            });
+
+            loadBlacklist();
+        }
+
+        async function sim(scenario) {
+            const log = document.getElementById('slog');
+            log.textContent = `Running: ${scenario}...`;
+
+            try {
+                const d = await (await fetch(`/dashboard/api/simulate/${scenario}`, { method: 'POST' })).json();
+
+                const shown = d.results.slice(0, 8).map(r => `<span style="color:#94a3b8">${r}</span>`).join('<br>');
+                const more = d.results.length > 8
+                    ? `<br><span style="color:#64748b">...+${d.results.length - 8} more</span>`
+                    : '';
+
+                log.innerHTML = `<strong style="color:#34d399">${d.scenario}</strong> — ${d.requests} requests<br>${shown}${more}`;
+
+                setTimeout(() => load(cur), 600);
+            } catch (e) {
+                log.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        function exportCsv() {
+            window.location.href = '/dashboard/api/export/events.csv';
+        }
+
+        function load(s) {
+            if (s === 'overview') {
+                loadStats();
+                loadPending();
+                loadEvents('er');
+            }
+            if (s === 'metrics') loadMetrics();
+            if (s === 'hitl') loadHitl();
+            if (s === 'events') loadEvents('ea');
+            if (s === 'chart') loadChartEps();
+            if (s === 'baselines') loadBaselines();
+            if (s === 'ips') loadIps();
+            if (s === 'blacklist') loadBlacklist();
+        }
+
+        setInterval(() => {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+
+        setInterval(() => load(cur), 10000);
+        load('overview');
+    </script>
+</body>
+</html>
